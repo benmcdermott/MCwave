@@ -1,0 +1,47 @@
+  Simulation details
+  ---------------------------------------------------------------
+# Colocation points
+
+  NX = 512
+  NY = 512
+  NZ = 1024
+
+# Grid
+
+  X = -3*pi:3*pi (rotation)
+  Y = -pi:pi     (B-field)
+  Z = -pi:pi     (gravity)
+
+  we transpose this grid -> [2 3 1]
+  to get (x,y,z) <-> (Y,Z,X) where
+  lower case has B_x, g_y, omega_z
+
+# Mean-field by0
+
+  S1: 1.25e-8
+  S2: 0.0125
+  S3: 0.0625
+  S4: 0.125
+  S5: 0.250
+  S6: 0.625
+
+# Time step and rotation rate
+  
+  dt = 5e-4
+  omegax = 10.0
+
+# Diffusivities (which determine Pr, Pm)
+
+  nu = 1e-4     (viscosity)
+  mu = 1e-4     (magnetic diffusivity)
+  kappa = 1e-4  (thermal diffusivity)
+
+# Boussinesq params
+
+  bvfreq = 1.0
+  xmom   = -1.0
+  xtemp  = 0.0
+
+  these choices make Pablo's equations 
+  align with our equations
+
