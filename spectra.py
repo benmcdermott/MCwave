@@ -20,7 +20,7 @@ def bin_spec(ksort, Esort, nx):
     ind = int(nx / 2)
     k = np.arange(0.0, nx / 2, 1.0)
     dk = k[1] - k[0]
-    spec = np.zeros((ind, 1))
+    spec = np.zeros((ind))
 
     # sum energy in each 2D ring at distance |k|, with width dk
     # np.where finds the indices in ksort where k >= k[i] > k+dk
@@ -160,7 +160,7 @@ def helicity_spec(ax,ay,az,bx,by,bz,nx):
             np.shape(bx) == np.shape(by) == np.shape(bz)), \
             'Input arrays must be the same shape: [nx,nx]'
 
-    assert all(np.shape(ax)) == int(nx),'Input arrays must be size [nx,nx]'
+    assert all(x == nx for x in ax.shape),'Input arrays must be size [nx,nx]'
 
     factor = 1.0 / nx / nx
     ind = int(nx / 2)
