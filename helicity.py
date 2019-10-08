@@ -75,11 +75,10 @@ def relative_helicity(path,t,shape,case):
     assert np.isfortran(ax) == np.isfortran(ay) == np.isfortran(az) == np.isfortran(bx) \
         == np.isfortran(by) == np.isfortran(bz) , 'Binary files loaded incorrectly, must be Fortran ordered'
 
-    hr = np.divide(ax*bx + ay*by + az*bz, np.sqrt(ax*ax + ay*ay + az*az) * np.sqrt(bx*bx + by*by + bz*bz))
+    denom = np.sqrt(ax*ax + ay*ay + az*az) * np.sqrt(bx*bx + by*by + bz*bz)
 
-    assert all(abs(hr) <= 1.0+1e-8) , 'abs(hr) <= 1 violated'
+    return np.divide(ax*bx + ay*by + az*bz, denom)
 
-    return
 
 # emf in the x-direction - (u x b)_x
 def emfx(path,t,shape):
@@ -96,6 +95,7 @@ def emfx(path,t,shape):
         'Binary files loaded incorrectly, must be Fortran ordered'
 
     return vy*bz - vz*by
+
 
 # emf in the x-direction normalised by total |u x b|
 def emfx_norm(path,t,shape):
@@ -119,8 +119,6 @@ def emfx_norm(path,t,shape):
     emfz = vx*by - vy*bx
 
     E = np.sqrt(emfx*emfx + emfy*emfy + emfz*emfz)
-
-    assert all(abs(np.divide(emfx, E)) <= 1.0+1e-8), '|emfx|/|emf| <= 1.0 violated'
 
     return np.divide(emfx, E)
 
