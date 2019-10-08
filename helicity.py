@@ -1,7 +1,8 @@
-## helicity module
+## module containing functions to compute helicity and electromotive force (emf)
+
 import numpy as np
 
-## computes helicity density
+# computes helicity density
 # path is the path to the binary files
 # t is the numeric label of binary file
 # shape is the shape of the data arrays
@@ -11,20 +12,22 @@ import numpy as np
 
 def helicity(path,t,shape,case):
 
+    # kinetic helicity
     if case == 1:
         a = 'v'     # velocity
         b = 'w'     # vorticity
+    # magnetic helicity
     elif case == 2:
         a = 'a'     # magnetic potential
         b = 'b'     # magnetic field
+    # cross helicity
     elif case == 3:
         a = 'v'     # velocity
         b = 'b'     # magnetic field
     else:
         ValueError('hk: case = 1, hm: case = 2, hc: case = 3')
 
-    s = str(t)
-    str1 = s.rjust(4, '0')
+    str1 = str(t).zfill(4)
 
     ax = np.fromfile(path+a+'y.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
     ay = np.fromfile(path+a+'z.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
@@ -34,27 +37,32 @@ def helicity(path,t,shape,case):
     by = np.fromfile(path+b+'z.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
     bz = np.fromfile(path+b+'x.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
 
-    return ax*bx * ay*by * az*bz
+    assert np.isfortran(ax) == np.isfortran(ay) == np.isfortran(az) == np.isfortran(bx) \
+        == np.isfortran(by) == np.isfortran(bz) , 'Binary files loaded incorrectly, must be Fortran ordered'
 
-## computes relative helicity density
+    return ax*bx + ay*by + az*bz
+
+# computes relative helicity density
 # helicity normalised by |a||b|
 
 def relative_helicity(path,t,shape,case):
 
+    # kinetic helicity
     if case == 1:
         a = 'v'     # velocity
         b = 'w'     # vorticity
+    # magnetic helicity
     elif case == 2:
         a = 'a'     # magnetic potential
         b = 'b'     # magnetic field
+    # cross helicity
     elif case == 3:
         a = 'v'     # velocity
         b = 'b'     # magnetic field
     else:
         ValueError('hk: case = 1, hm: case = 2, hc: case = 3')
 
-    s = str(t)
-    str1 = s.rjust(4, '0')
+    str1 = str(t).zfill(4)
 
     ax = np.fromfile(path+a+'y.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
     ay = np.fromfile(path+a+'z.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
@@ -64,4 +72,56 @@ def relative_helicity(path,t,shape,case):
     by = np.fromfile(path+b+'z.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
     bz = np.fromfile(path+b+'x.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
 
-    return (ax*bx * ay*by * az*bz) / np.sqrt(ax*ax + ay*ay + az*az) / np.sqrt(bx*bx + by*by + bz*bz)
+    assert np.isfortran(ax) == np.isfortran(ay) == np.isfortran(az) == np.isfortran(bx) \
+        == np.isfortran(by) == np.isfortran(bz) , 'Binary files loaded incorrectly, must be Fortran ordered'
+
+    hr = np.divide(ax*bx + ay*by + az*bz, np.sqrt(ax*ax + ay*ay + az*az) * np.sqrt(bx*bx + by*by + bz*bz))
+
+    assert all(abs(hr) <= 1.0+1e-8) , 'abs(hr) <= 1 violated'
+
+    return
+
+# emf in the x-direction - (u x b)_x
+def emfx(path,t,shape):
+
+    str1 = str(t).zfill(4)
+
+    vy = np.fromfile(path+'vz.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+    vz = np.fromfile(path+'vx.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+
+    by = np.fromfile(path+'bz.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+    bz = np.fromfile(path+'bx.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+
+    assert np.isfortran(vy) == np.isfortran(vz) == np.isfortran(by) == np.isfortran(bz) , \
+        'Binary files loaded incorrectly, must be Fortran ordered'
+
+    return vy*bz - vz*by
+
+# emf in the x-direction normalised by total |u x b|
+def emfx_norm(path,t,shape):
+
+    str1 = str(t).zfill(4)
+
+    vx = np.fromfile(path+'vy.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+    vy = np.fromfile(path+'vz.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+    vz = np.fromfile(path+'vx.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+
+    bx = np.fromfile(path+'by.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+    by = np.fromfile(path+'bz.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+    bz = np.fromfile(path+'bx.'+str1+'.out',dtype=np.float32).reshape(shape,order='F')
+
+    assert np.isfortran(vx) == np.isfortran(vy) == np.isfortran(vz) == np.isfortran(bx) \
+        == np.isfortran(by) == np.isfortran(bz) , 'Binary files loaded incorrectly, must be Fortran ordered'
+
+    # emf = u x b
+    emfx = vy*bz - vz*by
+    emfy = vz*bx - vx*bz
+    emfz = vx*by - vy*bx
+
+    E = np.sqrt(emfx*emfx + emfy*emfy + emfz*emfz)
+
+    assert all(abs(np.divide(emfx, E)) <= 1.0+1e-8), '|emfx|/|emf| <= 1.0 violated'
+
+    return np.divide(emfx, E)
+
+
