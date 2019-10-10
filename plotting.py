@@ -42,7 +42,8 @@ def vz_coloredby_hr(sub,t,case):
         hr = emfx_norm(path+sub, t, shape)
 
     # take x-z slice
-    cut = int(NY/2)
+    #cut = int(NY/2)
+    cut = 100
     vz_slice = vz[:,:,cut]
     hr_slice = hr[:,:,cut]
 
@@ -58,10 +59,11 @@ def vz_coloredby_hr(sub,t,case):
     colors = cmap(colors)
 
     # convert vz to transparency
-    vmax = 0.5*np.max(abs(vz_slice[:]))
+    threshold = 0.50
+    vmax = threshold*np.max(abs(vz_slice[:]))
     alphas = Normalize(0.0, vmax, clip=True)(np.abs(vz_slice))
 
-    # set alpha channel of hr colours
+    # set alpha channel of colours
     colors[..., -1] = alphas
 
     # plot
@@ -76,13 +78,13 @@ def vz_coloredby_hr(sub,t,case):
 
     # set output file and save
     if case == 1:
-        outfile = outpath+sub+'vzxz_hk_'+str(10*((t-1)/2))+'.png'
+        outfile = outpath+sub+'vzxz_hk_'+str(int(10*((t-1)/2)))+'.png'
     elif case == 2:
-        outfile = outpath+sub+'vzxz_hm_'+str(10*((t-1)/2))+'.png'
+        outfile = outpath+sub+'vzxz_hm_'+str(int(10*((t-1)/2)))+'.png'
     elif case == 3:
-        outfile = outpath+sub+'vzxz_hc_'+str(10*((t-1)/2))+'.png'
+        outfile = outpath+sub+'vzxz_hc_'+str(int(10*((t-1)/2)))+'.png'
     elif case == 4:
-        outfile = outpath+sub+'vzxz_emfx_'+str(10*((t-1)/2))+'.png'
+        outfile = outpath+sub+'vzxz_emfx_'+str(int(10*((t-1)/2)))+'.png'
 
     plt.savefig(outfile, dpi=600, bbox_inches='tight')
 
